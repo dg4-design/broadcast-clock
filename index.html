@@ -5,85 +5,75 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>配信卓用時計</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@700&display=swap" rel="stylesheet" />
+    <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
     <style>
       body {
-        display: flex;
-        justify-content: center;
-        align-items: center;
+        display: grid;
+        place-content: center;
         height: 100vh;
         margin: 0;
+        background-color: #000;
+      }
+      #root {
+        width: 100%;
       }
       .clock-container {
-        display: flex;
-        justify-content: space-around;
-        align-items: center;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
         width: 100%;
-        max-width: 800px;
+      }
+      .clock-container .clock {
+        display: grid;
+        place-content: center;
       }
       #digital-clock {
-        font-family: "Roboto Mono", monospace;
-        font-size: 2rem;
+        font-family: "system-ui", monospace;
+        font-size: calc(100vw / 8);
         font-weight: bold;
-        color: #333;
+        color: #fff;
+        width: 60vw;
       }
     </style>
   </head>
   <body>
-    <div class="clock-container">
-      <div id="analog-clock" class="clock"></div>
-      <div id="digital-clock" class="clock"></div>
-    </div>
+    <div id="root"></div>
 
-    <script>
-      function createAnalogClock() {
-        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-        svg.setAttribute("width", "200");
-        svg.setAttribute("height", "200");
+    <script type="text/babel">
+      const { useState, useEffect } = React;
 
-        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-        circle.setAttribute("cx", "100");
-        circle.setAttribute("cy", "100");
-        circle.setAttribute("r", "95");
-        circle.setAttribute("fill", "none");
-        circle.setAttribute("stroke", "#333");
-        circle.setAttribute("stroke-width", "2");
-        svg.appendChild(circle);
-
-        for (let i = 0; i < 12; i++) {
-          const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-          const angle = ((i * 30 - 90) * Math.PI) / 180;
-          line.setAttribute("x1", 100 + Math.cos(angle) * 90);
-          line.setAttribute("y1", 100 + Math.sin(angle) * 90);
-          line.setAttribute("x2", 100 + Math.cos(angle) * 100);
-          line.setAttribute("y2", 100 + Math.sin(angle) * 100);
-          line.setAttribute("stroke", "#333");
-          line.setAttribute("stroke-width", "2");
-          svg.appendChild(line);
-        }
-
-        const hourHand = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        hourHand.setAttribute("id", "hour-hand");
-        hourHand.setAttribute("stroke", "#333");
-        hourHand.setAttribute("stroke-width", "4");
-        svg.appendChild(hourHand);
-
-        const minuteHand = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        minuteHand.setAttribute("id", "minute-hand");
-        minuteHand.setAttribute("stroke", "#333");
-        minuteHand.setAttribute("stroke-width", "3");
-        svg.appendChild(minuteHand);
-
-        const secondHand = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        secondHand.setAttribute("id", "second-hand");
-        secondHand.setAttribute("stroke", "red");
-        secondHand.setAttribute("stroke-width", "2");
-        svg.appendChild(secondHand);
-
-        document.getElementById("analog-clock").appendChild(svg);
+      function AnalogClock({ time }) {
+        return (
+          <div className="clock" id="analog-clock">
+            <svg width="200" height="200">
+              <circle cx="100" cy="100" r="95" fill="none" stroke="#fff" strokeWidth="2" />
+              {[...Array(12)].map((_, i) => {
+                const angle = ((i * 30 - 90) * Math.PI) / 180;
+                return <line key={i} x1={100 + Math.cos(angle) * 90} y1={100 + Math.sin(angle) * 90} x2={100 + Math.cos(angle) * 100} y2={100 + Math.sin(angle) * 100} stroke="#000" strokeWidth="2" />;
+              })}
+              {["hour", "minute", "second"].map((hand) => {
+                const value = hand === "hour" ? time.getHours() % 12 : time[`get${hand.charAt(0).toUpperCase() + hand.slice(1)}s`]();
+                const angle = (((value + (hand === "hour" ? time.getMinutes() / 60 : 0)) * (hand === "hour" ? 30 : 6) - 90) * Math.PI) / 180;
+                const length = hand === "hour" ? 60 : hand === "minute" ? 80 : 90;
+                return (
+                  <line
+                    key={hand}
+                    x1="100"
+                    y1="100"
+                    x2={100 + Math.cos(angle) * length}
+                    y2={100 + Math.sin(angle) * length}
+                    stroke={hand === "second" ? "red" : "#fff"}
+                    strokeWidth={hand === "hour" ? 5 : hand === "minute" ? 3 : 2}
+                  />
+                );
+              })}
+            </svg>
+          </div>
+        );
       }
 
-      function updateClocks() {
-        const now = new Date();
+      function DigitalClock({ time }) {
         const options = {
           timeZone: "Asia/Tokyo",
           hour: "2-digit",
@@ -91,38 +81,30 @@
           second: "2-digit",
           hour12: false,
         };
-
-        // Update digital clock
-        document.getElementById("digital-clock").textContent = now.toLocaleTimeString("ja-JP", options);
-
-        // Update analog clock
-        const second = now.getSeconds();
-        const minute = now.getMinutes();
-        const hour = now.getHours() % 12;
-
-        const secondAngle = ((second * 6 - 90) * Math.PI) / 180;
-        const minuteAngle = (((minute + second / 60) * 6 - 90) * Math.PI) / 180;
-        const hourAngle = (((hour + minute / 60) * 30 - 90) * Math.PI) / 180;
-
-        document.getElementById("second-hand").setAttribute("x1", "100");
-        document.getElementById("second-hand").setAttribute("y1", "100");
-        document.getElementById("second-hand").setAttribute("x2", 100 + Math.cos(secondAngle) * 90);
-        document.getElementById("second-hand").setAttribute("y2", 100 + Math.sin(secondAngle) * 90);
-
-        document.getElementById("minute-hand").setAttribute("x1", "100");
-        document.getElementById("minute-hand").setAttribute("y1", "100");
-        document.getElementById("minute-hand").setAttribute("x2", 100 + Math.cos(minuteAngle) * 80);
-        document.getElementById("minute-hand").setAttribute("y2", 100 + Math.sin(minuteAngle) * 80);
-
-        document.getElementById("hour-hand").setAttribute("x1", "100");
-        document.getElementById("hour-hand").setAttribute("y1", "100");
-        document.getElementById("hour-hand").setAttribute("x2", 100 + Math.cos(hourAngle) * 60);
-        document.getElementById("hour-hand").setAttribute("y2", 100 + Math.sin(hourAngle) * 60);
+        return (
+          <div className="clock" id="digital-clock">
+            {time.toLocaleTimeString("ja-JP", options)}
+          </div>
+        );
       }
 
-      createAnalogClock();
-      updateClocks();
-      setInterval(updateClocks, 1000);
+      function Clock() {
+        const [time, setTime] = useState(new Date());
+
+        useEffect(() => {
+          const timer = setInterval(() => setTime(new Date()), 1000);
+          return () => clearInterval(timer);
+        }, []);
+
+        return (
+          <div className="clock-container">
+            <AnalogClock time={time} />
+            <DigitalClock time={time} />
+          </div>
+        );
+      }
+
+      ReactDOM.render(<Clock />, document.getElementById("root"));
     </script>
   </body>
 </html>
