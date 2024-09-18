@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>配信卓用時計</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@700&display=swap" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/17.0.2/umd/react.development.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/17.0.2/umd/react-dom.development.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+    <style>
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+      }
+      #clock {
+        font-family: "Roboto Mono", monospace;
+        font-size: 3rem;
+        font-weight: 900;
+        color: #333;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+      function Clock() {
+        const [time, setTime] = React.useState(new Date());
+
+        React.useEffect(() => {
+          const timer = setInterval(() => {
+            setTime(new Date());
+          }, 1000);
+
+          return () => {
+            clearInterval(timer);
+          };
+        }, []);
+
+        const options = {
+          timeZone: "Asia/Tokyo",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
+        };
+
+        return <div id="clock">{time.toLocaleTimeString("ja-JP", options)}</div>;
+      }
+
+      ReactDOM.render(<Clock />, document.getElementById("root"));
+    </script>
+  </body>
+</html>
