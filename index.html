@@ -4,107 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>配信卓用時計</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@700&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="style.css" />
+
     <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
-    <style>
-      body {
-        display: grid;
-        place-content: center;
-        height: 100vh;
-        margin: 0;
-        background-color: #000;
-      }
-      #root {
-        width: 100%;
-      }
-      .clock-container {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        width: 100%;
-      }
-      .clock-container .clock {
-        display: grid;
-        place-content: center;
-      }
-      #digital-clock {
-        font-family: "system-ui", monospace;
-        font-size: calc(100vw / 8);
-        font-weight: bold;
-        color: #fff;
-        width: 60vw;
-      }
-    </style>
+
+    <script type="text/babel" src="Clock.jsx" defer></script>
   </head>
   <body>
-    <div id="root"></div>
-
-    <script type="text/babel">
-      const { useState, useEffect } = React;
-
-      function AnalogClock({ time }) {
-        return (
-          <div className="clock" id="analog-clock">
-            <svg width="200" height="200">
-              <circle cx="100" cy="100" r="95" fill="none" stroke="#fff" strokeWidth="2" />
-              {[...Array(12)].map((_, i) => {
-                const angle = ((i * 30 - 90) * Math.PI) / 180;
-                return <line key={i} x1={100 + Math.cos(angle) * 90} y1={100 + Math.sin(angle) * 90} x2={100 + Math.cos(angle) * 100} y2={100 + Math.sin(angle) * 100} stroke="#000" strokeWidth="2" />;
-              })}
-              {["hour", "minute", "second"].map((hand) => {
-                const value = hand === "hour" ? time.getHours() % 12 : time[`get${hand.charAt(0).toUpperCase() + hand.slice(1)}s`]();
-                const angle = (((value + (hand === "hour" ? time.getMinutes() / 60 : 0)) * (hand === "hour" ? 30 : 6) - 90) * Math.PI) / 180;
-                const length = hand === "hour" ? 60 : hand === "minute" ? 80 : 90;
-                return (
-                  <line
-                    key={hand}
-                    x1="100"
-                    y1="100"
-                    x2={100 + Math.cos(angle) * length}
-                    y2={100 + Math.sin(angle) * length}
-                    stroke={hand === "second" ? "red" : "#fff"}
-                    strokeWidth={hand === "hour" ? 5 : hand === "minute" ? 3 : 2}
-                  />
-                );
-              })}
-            </svg>
-          </div>
-        );
-      }
-
-      function DigitalClock({ time }) {
-        const options = {
-          timeZone: "Asia/Tokyo",
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-          hour12: false,
-        };
-        return (
-          <div className="clock" id="digital-clock">
-            {time.toLocaleTimeString("ja-JP", options)}
-          </div>
-        );
-      }
-
-      function Clock() {
-        const [time, setTime] = useState(new Date());
-
-        useEffect(() => {
-          const timer = setInterval(() => setTime(new Date()), 1000);
-          return () => clearInterval(timer);
-        }, []);
-
-        return (
-          <div className="clock-container">
-            <AnalogClock time={time} />
-            <DigitalClock time={time} />
-          </div>
-        );
-      }
-
-      ReactDOM.render(<Clock />, document.getElementById("root"));
-    </script>
+    <div id="app"></div>
   </body>
 </html>
