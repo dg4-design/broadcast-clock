@@ -3,28 +3,37 @@ const { useState, useEffect } = React;
 function AnalogClock({ time }) {
   return (
     <div className="clock" id="analog-clock">
-      <svg width="200" height="200">
+      <svg viewBox="0 0 200 200">
         <circle cx="100" cy="100" r="95" fill="none" stroke="#fff" strokeWidth="2" />
-        {[...Array(12)].map((_, i) => {
-          const angle = ((i * 30 - 90) * Math.PI) / 180;
-          return <line key={i} x1={100 + Math.cos(angle) * 90} y1={100 + Math.sin(angle) * 90} x2={100 + Math.cos(angle) * 100} y2={100 + Math.sin(angle) * 100} stroke="#000" strokeWidth="2" />;
+        {[...Array(60)].map((_, i) => {
+          const angle = ((i * 6 - 90) * Math.PI) / 180;
+          const radius = i % 5 === 0 ? 85 : 90;
+          return i % 5 === 0 ? <circle key={i} cx={100 + Math.cos(angle) * radius} cy={100 + Math.sin(angle) * radius} r="2" fill="#fff" /> : null;
         })}
         {["hour", "minute", "second"].map((hand) => {
-          const value = hand === "hour" ? time.getHours() % 12 : time[`get${hand.charAt(0).toUpperCase() + hand.slice(1)}s`]();
-          const angle = (((value + (hand === "hour" ? time.getMinutes() / 60 : 0)) * (hand === "hour" ? 30 : 6) - 90) * Math.PI) / 180;
+          const milliseconds = time.getMilliseconds() / 1000;
+          const seconds = time.getSeconds() + milliseconds;
+          const minutes = time.getMinutes() + seconds / 60;
+          const hours = (time.getHours() % 12) + minutes / 60;
+
+          const value = hand === "hour" ? hours : hand === "minute" ? minutes : seconds;
+          const angle = value * (hand === "hour" ? 30 : 6);
           const length = hand === "hour" ? 60 : hand === "minute" ? 80 : 90;
+
           return (
             <line
               key={hand}
               x1="100"
               y1="100"
-              x2={100 + Math.cos(angle) * length}
-              y2={100 + Math.sin(angle) * length}
+              x2="100"
+              y2={100 - length}
               stroke={hand === "second" ? "red" : "#fff"}
               strokeWidth={hand === "hour" ? 5 : hand === "minute" ? 3 : 2}
+              transform={`rotate(${angle}, 100, 100)`}
             />
           );
         })}
+        <circle cx="100" cy="100" r="4" fill="#f00" />
       </svg>
     </div>
   );
@@ -50,14 +59,12 @@ function Clock() {
 
   useEffect(() => {
     const updateTime = () => {
-      const now = new Date();
-      const delay = 1000 - now.getMilliseconds();
-      setTimeout(() => setTime(new Date()), delay);
+      setTime(new Date());
+      requestAnimationFrame(updateTime);
     };
 
-    updateTime();
-    const timer = setInterval(updateTime, 1000);
-    return () => clearInterval(timer);
+    const animationId = requestAnimationFrame(updateTime);
+    return () => cancelAnimationFrame(animationId);
   }, []);
 
   return (

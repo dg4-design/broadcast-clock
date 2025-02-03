@@ -17,10 +17,43 @@ body {
   display: grid;
   place-content: center;
 }
+
+#analog-clock {
+  width: 40vw;
+  aspect-ratio: 1;
+}
+
+#analog-clock svg {
+  width: 40vw;
+}
+
 #digital-clock {
   font-family: "system-ui", monospace;
   font-size: calc(100vw / 8);
   font-weight: bold;
   color: #fff;
   width: 60vw;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+@media (max-aspect-ratio: 4/5) {
+  .clock-container {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    gap: 2rem;
+  }
+
+  #analog-clock {
+    width: 90vw;
+  }
+
+  #analog-clock svg {
+    width: 90vw;
+  }
+
+  #digital-clock {
+    font-size: calc(100vw / 5);
+    width: 90vw;
+  }
 }
