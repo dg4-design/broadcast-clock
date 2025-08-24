@@ -57,3 +57,96 @@ body {
     width: 90vw;
   }
 }
+
+/* フルスクリーン時のスタイル */
+:fullscreen {
+  background-color: #000;
+}
+
+:fullscreen body {
+  margin: 0;
+  padding: 0;
+  background-color: #000;
+}
+
+:fullscreen .clock-container {
+  width: 100vw;
+  height: 100vh;
+  display: grid;
+  place-content: center;
+}
+
+:fullscreen #analog-clock {
+  width: 45vmin;
+}
+
+:fullscreen #analog-clock svg {
+  width: 45vmin;
+}
+
+:fullscreen #digital-clock {
+  font-size: calc(100vmin / 8);
+  width: 55vmin;
+}
+
+/* Webkit系ブラウザ対応 */
+:-webkit-full-screen {
+  background-color: #000;
+}
+
+:-webkit-full-screen body {
+  margin: 0;
+  padding: 0;
+  background-color: #000;
+}
+
+:-webkit-full-screen .clock-container {
+  width: 100vw;
+  height: 100vh;
+  display: grid;
+  place-content: center;
+}
+
+:-webkit-full-screen #analog-clock {
+  width: 45vmin;
+}
+
+:-webkit-full-screen #analog-clock svg {
+  width: 45vmin;
+}
+
+:-webkit-full-screen #digital-clock {
+  font-size: calc(100vmin / 8);
+  width: 55vmin;
+}
+
+/* Mozilla系ブラウザ対応 */
+:-moz-full-screen {
+  background-color: #000;
+}
+
+:-moz-full-screen body {
+  margin: 0;
+  padding: 0;
+  background-color: #000;
+}
+
+:-moz-full-screen .clock-container {
+  width: 100vw;
+  height: 100vh;
+  display: grid;
+  place-content: center;
+}
+
+:-moz-full-screen #analog-clock {
+  width: 45vmin;
+}
+
+:-moz-full-screen #analog-clock svg {
+  width: 45vmin;
+}
+
+:-moz-full-screen #digital-clock {
+  font-size: calc(100vmin / 8);
+  width: 55vmin;
+}

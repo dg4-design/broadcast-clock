@@ -56,6 +56,8 @@ function DigitalClock({ time }) {
 
 function Clock() {
   const [time, setTime] = useState(new Date());
+  const [showChildElements, setShowChildElements] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
     const updateTime = () => {
@@ -66,6 +68,108 @@ function Clock() {
     const animationId = requestAnimationFrame(updateTime);
     return () => cancelAnimationFrame(animationId);
   }, []);
+
+  useEffect(() => {
+    const handleKeyPress = (event) => {
+      if (event.key.toLowerCase() === "e") {
+        setShowChildElements((prev) => !prev);
+      }
+    };
+
+    let touchStartTime = 0;
+    let initialPinchDistance = 0;
+    const DOUBLE_TAP_DELAY = 300; // 300ms以内のタップを判定
+    const PINCH_THRESHOLD = 50; // ピンチの最小距離
+
+    const getTouchDistance = (touch1, touch2) => {
+      const dx = touch1.clientX - touch2.clientX;
+      const dy = touch1.clientY - touch2.clientY;
+      return Math.sqrt(dx * dx + dy * dy);
+    };
+
+    const toggleFullscreen = () => {
+      if (!document.fullscreenElement) {
+        document.documentElement
+          .requestFullscreen()
+          .then(() => {
+            setIsFullscreen(true);
+          })
+          .catch((err) => {
+            console.error("フルスクリーンに切り替えできませんでした:", err);
+          });
+      } else {
+        document
+          .exitFullscreen()
+          .then(() => {
+            setIsFullscreen(false);
+          })
+          .catch((err) => {
+            console.error("フルスクリーンを終了できませんでした:", err);
+          });
+      }
+    };
+
+    const handleTouchStart = (event) => {
+      if (event.touches.length === 2) {
+        touchStartTime = Date.now();
+        initialPinchDistance = getTouchDistance(event.touches[0], event.touches[1]);
+        event.preventDefault(); // ピンチズームを無効化
+      }
+    };
+
+    const handleTouchMove = (event) => {
+      if (event.touches.length === 2) {
+        event.preventDefault(); // ピンチズームを無効化
+      }
+    };
+
+    const handleTouchEnd = (event) => {
+      if (event.changedTouches.length === 2 && touchStartTime > 0) {
+        const touchEndTime = Date.now();
+        const touchDuration = touchEndTime - touchStartTime;
+
+        // 短時間のタッチ（タップ）かつ二本指の場合
+        if (touchDuration < DOUBLE_TAP_DELAY) {
+          event.preventDefault();
+          setShowChildElements((prev) => !prev);
+        }
+
+        touchStartTime = 0;
+        initialPinchDistance = 0;
+      } else if (event.touches.length === 0 && initialPinchDistance > 0) {
+        // ピンチ操作の終了時にフルスクリーン切り替え
+        const currentPinchDistance = getTouchDistance(event.changedTouches[0], event.changedTouches[1]);
+
+        const pinchDelta = Math.abs(currentPinchDistance - initialPinchDistance);
+
+        if (pinchDelta > PINCH_THRESHOLD) {
+          event.preventDefault();
+          toggleFullscreen();
+        }
+
+        initialPinchDistance = 0;
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyPress);
+    document.addEventListener("touchstart", handleTouchStart, { passive: false });
+    document.addEventListener("touchmove", handleTouchMove, { passive: false });
+    document.addEventListener("touchend", handleTouchEnd, { passive: false });
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyPress);
+      document.removeEventListener("touchstart", handleTouchStart);
+      document.removeEventListener("touchmove", handleTouchMove);
+      document.removeEventListener("touchend", handleTouchEnd);
+    };
+  }, []);
+
+  useEffect(() => {
+    const linkWrapper = document.querySelector('div[style*="position: fixed"][style*="bottom: 16px"][style*="right: 16px"]');
+    if (linkWrapper) {
+      linkWrapper.style.display = showChildElements ? "flex" : "none";
+    }
+  }, [showChildElements]);
 
   return (
     <div className="clock-container">
