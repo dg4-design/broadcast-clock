@@ -73,11 +73,15 @@ function Clock() {
     const handleKeyPress = (event) => {
       if (event.key.toLowerCase() === "e") {
         setShowChildElements((prev) => !prev);
+      } else if (event.key.toLowerCase() === "f") {
+        // デバッグ用：Fキーでもフルスクリーン切り替え
+        toggleFullscreen();
       }
     };
 
     let touchStartTime = 0;
     let initialPinchDistance = 0;
+    let currentPinchDistance = 0;
     const DOUBLE_TAP_DELAY = 300; // 300ms以内のタップを判定
     const PINCH_THRESHOLD = 50; // ピンチの最小距離
 
@@ -88,24 +92,48 @@ function Clock() {
     };
 
     const toggleFullscreen = () => {
-      if (!document.fullscreenElement) {
-        document.documentElement
-          .requestFullscreen()
-          .then(() => {
-            setIsFullscreen(true);
-          })
-          .catch((err) => {
-            console.error("フルスクリーンに切り替えできませんでした:", err);
-          });
+      console.log("フルスクリーン切り替え実行中...");
+
+      // ブラウザ対応チェック
+      if (!document.fullscreenEnabled && !document.webkitFullscreenEnabled && !document.mozFullScreenEnabled) {
+        console.error("このブラウザはフルスクリーンAPIをサポートしていません");
+        return;
+      }
+
+      const requestFullscreen = document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen || document.documentElement.mozRequestFullScreen;
+
+      const exitFullscreen = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen;
+
+      const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement;
+
+      if (!isFullscreen) {
+        if (requestFullscreen) {
+          requestFullscreen
+            .call(document.documentElement)
+            .then(() => {
+              console.log("フルスクリーンに切り替わりました");
+              setIsFullscreen(true);
+            })
+            .catch((err) => {
+              console.error("フルスクリーンに切り替えできませんでした:", err);
+            });
+        } else {
+          console.error("requestFullscreen APIが利用できません");
+        }
       } else {
-        document
-          .exitFullscreen()
-          .then(() => {
-            setIsFullscreen(false);
-          })
-          .catch((err) => {
-            console.error("フルスクリーンを終了できませんでした:", err);
-          });
+        if (exitFullscreen) {
+          exitFullscreen
+            .call(document)
+            .then(() => {
+              console.log("フルスクリーンを終了しました");
+              setIsFullscreen(false);
+            })
+            .catch((err) => {
+              console.error("フルスクリーンを終了できませんでした:", err);
+            });
+        } else {
+          console.error("exitFullscreen APIが利用できません");
+        }
       }
     };
 
@@ -113,12 +141,14 @@ function Clock() {
       if (event.touches.length === 2) {
         touchStartTime = Date.now();
         initialPinchDistance = getTouchDistance(event.touches[0], event.touches[1]);
+        console.log("ピンチ開始:", initialPinchDistance);
         event.preventDefault(); // ピンチズームを無効化
       }
     };
 
     const handleTouchMove = (event) => {
       if (event.touches.length === 2) {
+        currentPinchDistance = getTouchDistance(event.touches[0], event.touches[1]);
         event.preventDefault(); // ピンチズームを無効化
       }
     };
@@ -132,22 +162,25 @@ function Clock() {
         if (touchDuration < DOUBLE_TAP_DELAY) {
           event.preventDefault();
           setShowChildElements((prev) => !prev);
+          console.log("二本指タップ検出: childElements切り替え");
         }
 
         touchStartTime = 0;
         initialPinchDistance = 0;
-      } else if (event.touches.length === 0 && initialPinchDistance > 0) {
+        currentPinchDistance = 0;
+      } else if (event.touches.length === 0 && initialPinchDistance > 0 && currentPinchDistance > 0) {
         // ピンチ操作の終了時にフルスクリーン切り替え
-        const currentPinchDistance = getTouchDistance(event.changedTouches[0], event.changedTouches[1]);
-
         const pinchDelta = Math.abs(currentPinchDistance - initialPinchDistance);
+        console.log("ピンチ終了:", { initialPinchDistance, currentPinchDistance, pinchDelta });
 
         if (pinchDelta > PINCH_THRESHOLD) {
           event.preventDefault();
+          console.log("ピンチ検出: フルスクリーン切り替え");
           toggleFullscreen();
         }
 
         initialPinchDistance = 0;
+        currentPinchDistance = 0;
       }
     };
 
